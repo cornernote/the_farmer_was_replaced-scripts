@@ -13,7 +13,7 @@ def plant_farm():
 	tasks = []
 	for y in range(get_world_size()):
 		tasks.append({'method': plant_row_forever, 'param': y})
-	drones.process_tasks(tasks, True)
+	drones.process_tasks(tasks)
 
 def plant_row_forever(y):
 	while targets.want(Items.Pumpkin):

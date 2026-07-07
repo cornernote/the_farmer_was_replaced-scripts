@@ -1,0 +1,47 @@
+---
+title: Cactus Strategy Notes
+type: strategy
+status: active
+updated: 2026-07-08
+---
+
+# Cactus Strategy Notes
+
+Related docs: [current strategies](README.md), [dispatcher](dispatcher)
+
+## Module
+
+- `cactus.py`
+
+## Current Flow
+
+`cactus.py` uses a measured sort-and-harvest loop.
+
+1. Clear the field.
+2. Plant cactus by row using drones.
+3. Record measured cactus sizes into a world model.
+4. Sort rows with cocktail-shaker neighbor swaps.
+5. Sort columns with cocktail-shaker neighbor swaps.
+6. Harvest from `[0, 0]`.
+
+## Sorting Approach
+
+Rows and columns both use shrinking bounds:
+
+- scan forward and swap out-of-order neighbors
+- shrink high bound
+- scan backward and swap out-of-order neighbors
+- raise low bound
+- stop early when no swaps happen
+
+The model is updated with `swap_model()` when a physical `swap(direction)` is performed.
+
+## Current Decision
+
+No extra verify pass is used. The sorter has been reliable in-game, so verification is not currently worth the extra movement.
+
+## Remaining Work
+
+- Benchmark cactus per tick if cactus becomes a leaderboard target.
+- Consider tighter cocktail bounds or insertion-style placement for speed.
+- Keep correctness before clever movement optimization.

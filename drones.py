@@ -1,4 +1,4 @@
-def process_tasks(tasks, wait = False):
+def process_tasks(tasks, wait = True):
 	activeDrones = []
 	results = {}
 

@@ -10,7 +10,7 @@ def farm():
 	tasks = []
 	for center in centers:
 		tasks.append({'method': drone_farm, 'param': {'size': size, 'pos': center}})
-	drones.process_tasks(tasks, True)
+	drones.process_tasks(tasks)
 
 def drone_farm(param):
 	size, pos = param['size'], param['pos']
@@ -22,8 +22,8 @@ def drone_farm(param):
 		if not started:
 			started = True
 			do_a_flip()
-		maze_basic.plant_maze(size)
-		maze_basic.solve_maze()
+		if maze_basic.plant_maze(size):
+			maze_basic.solve_maze()
 
 def get_maze_positions():
 	worldSize = get_world_size()
@@ -42,9 +42,9 @@ def get_maze_positions():
 
 def calculate_mazes_per_row(maxDrones):
 	mazesPerRow = 1
-	for square in [4, 9, 16, 25, 36]:
-		mazesPerRow = square ** 0.5
-		if square >= maxDrones:
+	for square in [[4,2], [9,3], [16,4], [25,5], [36,6]]:
+		mazesPerRow = square[1]
+		if square[0] >= maxDrones:
 			break
 	return mazesPerRow
 

@@ -2,10 +2,12 @@
 title: Sunflower Strategy Notes
 type: strategy
 status: draft
-updated: 2026-07-06
+updated: 2026-07-08
 ---
 
 # Sunflower Strategy Notes
+
+Related docs: [current strategies](README.md), [dispatcher](dispatcher), [benchmarking](../benchmarking.md)
 
 Sunflowers are a power farm, but the important mechanic is not just planting and harvesting. The bonus depends on harvesting a sunflower that currently has the largest petal count on the farm.
 
@@ -24,13 +26,14 @@ Sunflowers are a power farm, but the important mechanic is not just planting and
 
 `sunflower.py` now:
 
-- exits when `farming.need_power()` becomes false
+- exits when `targets.want(Items.Power)` becomes false
 - plants the full field using row drones
-- waits for planting drones before scanning
-- scans rows with drones and records petal counts
+- measures petals while planting each row
+- waits for planting and measuring tasks through `drones.process_tasks()`
 - harvests by descending petal count
+- waits for each target flower to become harvestable before harvesting
 
-That shape is close to correct. The main strategic concern is preserving the 10-sunflower bonus condition.
+That shape is correct for max-petal order. The accepted simplification is that the final 9 flowers in a cycle are harvested too, even though they cannot receive the 8x bonus.
 
 ## Recommended Baseline Algorithm
 
@@ -39,19 +42,19 @@ That shape is close to correct. The main strategic concern is preserving the 10-
 3. Build petal buckets for counts 7 through 15.
 4. Harvest only flowers from the current highest non-empty bucket.
 5. After each max-petal bucket is harvested, the next lower bucket becomes the current maximum.
-6. Stop harvesting before fewer than 10 sunflowers would remain.
+6. Optional optimization: stop harvesting before fewer than 10 sunflowers would remain.
 7. Replant harvested tiles.
-8. Repeat until `farming.need_power()` is false.
+8. Repeat until `targets.want(Items.Power)` is false.
 
 This keeps every harvest bonus-valid while there are enough flowers remaining.
 
 ## Important Detail
 
-Do not blindly harvest the final 9 flowers in a cycle. Once fewer than 10 sunflowers remain on the farm, the 8x bonus cannot apply. It should be better to leave those flowers standing, replant harvested positions, and run another measured cycle.
+If harvesting in descending petal order, the only bonus loss is on the final 9 flowers in a cycle. Leaving them standing is theoretically better, but the current code accepts the simpler full harvest because the loss is small and the field is immediately replanted.
 
 ## Possible Improvement
 
-Because flowers can be measured before they are mature, scanning does not need to wait for `can_harvest()`. Waiting should happen only at harvest time, and only for the selected max-petal targets. This may reduce idle time during the scan phase.
+Because flowers can be measured before they are mature, planting/measurement does not wait for `can_harvest()`. Waiting happens at harvest time for each selected target.
 
 ## Later Optimizations
 

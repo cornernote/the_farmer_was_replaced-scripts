@@ -7,7 +7,7 @@ def farm():
 	tasks = []
 	for center in get_poly_positions():
 		tasks.append({'method': drone_farm, 'param': center})
-	drones.process_tasks(tasks, True)
+	drones.process_tasks(tasks)
 
 def drone_farm(pos):
 	world = poly_basic.get_world(get_world_size(), Entities.Grass)
@@ -41,14 +41,6 @@ def get_poly_positions():
 		baseY = baseY + bandHeight
 
 	return centers
-
-def calculate_drones_per_row(maxDrones):
-	dronesPerRow = 1
-	for square in [4, 9, 16, 25, 36]:
-		dronesPerRow = square ** 0.5
-		if square >= maxDrones:
-			break
-	return dronesPerRow
 
 if __name__ == '__main__':
 	farm()

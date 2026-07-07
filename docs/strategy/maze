@@ -1,0 +1,170 @@
+---
+title: Maze Strategy Notes
+type: strategy
+status: active
+updated: 2026-07-08
+---
+
+# Maze Strategy Notes
+
+Related docs: [current strategies](README.md), [dispatcher](dispatcher), [benchmarking](../benchmarking.md)
+
+## Modules
+
+- `maze_basic.py`
+- `maze_drones.py`
+
+## Current Baseline
+
+Mode: `wall_follow`
+
+`maze_basic.py` provides single-maze primitives:
+
+- `maze_cost(size)`
+- `plant_maze(size)`
+- `solve_maze()`
+
+Current `maze_basic.farm()` flow:
+
+1. Clear the field.
+2. Call `plant_maze(get_world_size())`.
+3. If maze creation succeeds, solve the maze.
+4. Follow the left wall from `North`.
+5. Harvest treasure when reached.
+
+`solve_maze()` is a left-hand wall follower. It walks until the drone reaches `Entities.Treasure`, then harvests.
+
+## Current Multi-Drone Gold
+
+`maze_drones.py` partitions the world into smaller maze centers based on `max_drones()`.
+
+Each worker:
+
+1. Moves to its assigned center.
+2. Plants a maze of the computed partition size.
+3. Solves it with `maze_basic.solve_maze()`.
+4. Repeats while gold is below high target.
+
+`maze_drones.drone_farm()` also checks the return value from `maze_basic.plant_maze(size)` before solving, so a failed weird-substance spend does not launch the wall follower into a non-maze field.
+
+## Baseline Strengths
+
+- Small and reliable.
+- No graph memory.
+- Good fallback for any maze size.
+- Partitioned workers produce gold in parallel.
+
+## Baseline Weaknesses
+
+- Can waste movement.
+- Does not use `measure()` treasure coordinates.
+- Does not support coordinated search inside one large maze.
+- `maze_basic.farm()` intentionally clears before creating fresh mazes. Existing-maze recovery is not currently a goal for this baseline.
+
+## Failure Cases
+
+- Calling the solver when no maze exists.
+- Assuming `plant_maze(size)` succeeded without checking its return value.
+- Clearing before solving if the bot is already inside a maze.
+- Multiple maze workers spending setup resources at the same time when reserves are low.
+
+## Mode 1: Measured Treasure Pathfinding
+
+Goal: use `measure()` to get the treasure coordinate, map the maze, and move by shortest known path instead of wall-following blindly.
+
+Expected flow:
+
+1. Ensure maze exists with `plant_maze(size)`, or detect that a maze already exists.
+2. Call `measure()` to get treasure position.
+3. Explore reachable cells and record open directions with `can_move(direction)`.
+4. Use BFS over the discovered graph to choose a route to the treasure.
+5. Move along the route.
+6. Harvest treasure.
+7. Fall back to wall-follow if mapping fails.
+
+State needed:
+
+- `treasure_pos`
+- `visited` set or dictionary keyed by position
+- adjacency dictionary
+- queue/list for BFS
+- predecessor map for reconstructing the path
+
+Implementation boundaries:
+
+- First version can fully explore the maze before routing.
+- Later version can stop exploring once treasure is reached.
+- Keep this single-drone until the state model is proven.
+
+Failure cases:
+
+- `measure()` returns `None` because there is no active maze.
+- Graph mapping misses a wrap or coordinate due to movement assumptions.
+- The drone gets moved by helper functions and current position state becomes stale.
+- BFS path is empty; fallback to wall-follow.
+
+## Mode 2: Maze Reuse
+
+Goal: avoid creating a fresh maze every time when the game mode allows extending or reusing the current maze/treasure state.
+
+Expected flow:
+
+1. Solve to treasure.
+2. Before harvesting, decide whether to spend weird substance on the treasure or related maze mechanic.
+3. If reuse succeeds, continue solving from the current maze state.
+4. If reuse fails or reserve is too low, harvest and return to dispatcher.
+
+Implementation boundaries:
+
+- Do not combine reuse with multi-drone in the first version.
+- Add a hard cap per call so the dispatcher can regain control.
+- Keep reserve protection stronger than baseline because reuse can spend repeatedly.
+
+Failure cases:
+
+- Spending weird substance below reserve.
+- Infinite reuse loop that starves other resources.
+- Reuse mechanic differs by unlock/achievement context.
+
+## Mode 3: Improved Multi-Drone Or Partitioned Maze
+
+Goal: improve large-farm maze throughput once enough drones are available.
+
+Candidate approaches:
+
+- Single large maze, distributed search: spawn workers at different entry lanes/sectors and let the first treasure finder trigger harvest.
+- Partitioned mazes: split the field into smaller blocks, with a worker or worker group per block.
+
+State needed:
+
+- worker assignment
+- shared discovery/completion signal
+- whether treasure has been found
+- per-worker path or wall-follow state
+- safe way to stop helpers after harvest
+
+Implementation boundaries:
+
+- Build measured single-drone pathfinding before coordinated search.
+- Use `max_drones()` and `get_world_size()`.
+- Keep the main drone useful as either coordinator or assigned worker.
+
+Failure cases:
+
+- Multiple drones spending setup resources at the same time.
+- Workers entering each other's sectors without a shared stop signal.
+- Main drone harvesting while helpers are still moving unpredictably.
+- `max_drones()` being lower than expected.
+
+## Recommended Implementation Order
+
+1. Keep `wall_follow` as default.
+2. Implement measured single-drone mapping and BFS behind a flag.
+3. Benchmark measured pathfinding against wall-follow.
+4. Add reuse behind a separate flag only after measured mode is stable.
+5. Improve multi-drone search only after max-drone behavior is understood.
+
+## Remaining Work
+
+- Add measured treasure pathfinding after the wall follower remains stable.
+- Test maze reuse separately from multi-drone partitioning.

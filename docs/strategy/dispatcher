@@ -1,0 +1,70 @@
+---
+title: Dispatcher Strategy Notes
+type: strategy
+status: active
+updated: 2026-07-08
+---
+
+# Dispatcher Strategy Notes
+
+Related docs: [current strategies](README.md), [research](../research.md)
+
+## Modules
+
+- `main.py`
+- `targets.py`
+- `drones.py`
+- `farming.py`
+- `movement.py`
+
+## Current Shape
+
+`main.py` keeps a priority-ordered `JOBS` list. Each job has:
+
+- `name`
+- `farm`
+- `items`
+
+`select_job()` returns the first job with any item below its low target in `targets.py`.
+
+Current order:
+
+1. [Sunflower](sunflower) for power.
+2. [Polyculture](polyculture) for hay, wood, and carrot.
+3. [Pumpkin](pumpkin) for pumpkins.
+4. [Cactus](cactus) for cactus.
+5. [Dinosaur](dinosaur) for bones.
+6. [Maze](maze) for gold.
+
+If no item is below its low target, the fallback is `maze_drones`.
+
+## Target Policy
+
+`targets.py` stores low/high pairs.
+
+- `targets.need(item)` starts a job when the item is below low.
+- `targets.want(item)` keeps that job running until the item reaches high.
+
+This hysteresis avoids constantly switching jobs near a single threshold.
+
+## Shared Helpers
+
+`drones.process_tasks(tasks)` runs task dictionaries through spawned drones and waits by default.
+
+Task shape:
+
+```python
+{'id': y, 'method': worker, 'param': y}
+```
+
+If an `id` is not provided, `drones.process_tasks()` assigns one. Use explicit ids whenever the returned result order matters.
+
+`farming.replace_with(entity)` handles harvest, tilling, watering, and planting for normal crop replacement.
+
+`movement.move_to(pos)` handles wrap-aware movement.
+
+## Remaining Work
+
+- Add `unlocking.py` only if automatic unlocking becomes a goal.
+- Add benchmarking outside `main.py`, not in the live dispatcher.
+- Consider replacing random task ids with deterministic ids if unnamed task results ever matter.

@@ -1,0 +1,56 @@
+---
+title: Polyculture Strategy Notes
+type: strategy
+status: active
+updated: 2026-07-08
+---
+
+# Polyculture Strategy Notes
+
+Related docs: [current strategies](README.md), [dispatcher](dispatcher)
+
+## Modules
+
+- `poly_drones.py`
+- `poly_basic.py`
+
+## Current Flow
+
+`poly_drones.py` clears the field, computes staggered worker centers, and starts one worker per center through `drones.process_tasks()`.
+
+Each worker:
+
+1. Creates a local `world` model initialized to grass.
+2. Runs while hay, wood, or carrot are below their high target.
+3. Calls `poly_basic.farm_poly(center, world)`.
+
+`poly_basic.py`:
+
+1. Chooses the next desired entity from `PLANTLIST`.
+2. Moves to the worker center.
+3. Plants/replaces the center tile.
+4. Reads `get_companion()`.
+5. Plants new companion requests into the worker's local world model.
+6. While waiting for harvest, works the 8 neighboring tiles around the center.
+7. Harvests the center when ready.
+
+## Worker Placement
+
+`poly_drones.get_poly_positions()` uses:
+
+- `step = 4`
+- alternating row offset
+- band height of `step * 2`
+- `max_drones()` as the worker cap
+
+This gives a staggered spread instead of clustering all drones in one row.
+
+## Notes
+
+The 8-neighbor waiting loop uses wrap-safe coordinates. It is intentionally experimental: it may improve throughput by doing useful nearby work while waiting, but it can also overwrite some useful companion state.
+
+## Remaining Work
+
+- Benchmark the 8-neighbor waiting loop against a simpler wait loop.
+- Consider making the neighbor track a named helper if it remains useful.
+- Consider shared ownership rules only if local worker worlds start conflicting in practice.

@@ -28,7 +28,14 @@ def farm_poly(pos, world):
 			farming.replace_with(companion[0])
 			movement.move_to(pos)
 		while not can_harvest():
-			pass
+			for nearPos in [[-1,1], [0,1], [1,1], [1,0], [1,-1], [0,-1], [-1,-1], [-1,0]]:
+				x = (pos[0] + nearPos[0]) % get_world_size()
+				y = (pos[1] + nearPos[1]) % get_world_size()
+				movement.move_to([x,y])
+				farming.ensure_harvest()
+				farming.replace_with(companion[0])
+				world[x][y] = companion[0]
+			movement.move_to(pos)
 		harvest()
 
 def get_world(size, element):

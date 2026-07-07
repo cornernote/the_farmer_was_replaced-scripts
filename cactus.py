@@ -14,7 +14,7 @@ def plant_farm():
 	tasks = []
 	for y in range(get_world_size()):
 		tasks.append({'id':y, 'method': plant_row, 'param': y})
-	return drones.process_tasks(tasks, True)
+	return drones.process_tasks(tasks)
 
 def plant_row(y):
 	measures = []
@@ -32,7 +32,7 @@ def sort_rows(world):
 	tasks = []
 	for y in range(get_world_size()):
 		tasks.append({'id': y, 'method': sort_row, 'param': {'y': y, 'world': world}})
-	return drones.process_tasks(tasks, True)
+	return drones.process_tasks(tasks)
 
 def sort_row(param):
 	y = param['y']
@@ -76,7 +76,7 @@ def sort_cols(world):
 	tasks = []
 	for x in range(get_world_size()):
 		tasks.append({'id': x, 'method': sort_col, 'param': {'x': x, 'world': world}})
-	return drones.process_tasks(tasks, True)
+	return drones.process_tasks(tasks)
 
 def sort_col(param):
 	x = param['x']

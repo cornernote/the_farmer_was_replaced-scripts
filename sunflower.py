@@ -13,7 +13,7 @@ def plant_farm():
 	tasks = []
 	for y in range(get_world_size()):
 		tasks.append({'id': y, 'method': plant_row, 'param': y})
-	return drones.process_tasks(tasks, True)
+	return drones.process_tasks(tasks)
 
 def plant_row(y):
 	measures = []
@@ -30,11 +30,13 @@ def harvest_farm(world):
 		tasks = []
 		for row in harvestList[petalCount]:
 			tasks.append({'method': harvest_row, 'param': row})
-		drones.process_tasks(tasks, True)
+		drones.process_tasks(tasks)
 
 def harvest_row(row):
 	for pos in row:
 		movement.move_to(pos)
+		while not can_harvest():
+			pass
 		harvest()
 
 def get_harvest_list(world):
@@ -47,11 +49,10 @@ def get_harvest_list(world):
 
 def make_petal_buckets():
 	buckets = {}
-	for petals in range(16)[::-1]:
-		if petals >= 7:
-			buckets[petals] = []
-			for _y in range(get_world_size()):
-				buckets[petals].append([])
+	for petals in range(15, 6, -1):
+		buckets[petals] = []
+		for _y in range(get_world_size()):
+			buckets[petals].append([])
 	return buckets
 
 if __name__ == '__main__':

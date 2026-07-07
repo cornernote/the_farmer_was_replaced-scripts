@@ -3,7 +3,7 @@ title: The Farmer Was Replaced Endgame Research
 type: research
 status: active
 researched_on: 2026-07-04
-updated: 2026-07-04
+updated: 2026-07-08
 ---
 
 # The Farmer Was Replaced Endgame Research
@@ -16,15 +16,15 @@ This note corrects the earlier mistake: this save is currently around 9x9 (`expa
 
 From `save.json`:
 
-- Current farm expansion unlock: `expand_9`.
-- Current major unlocks: polyculture, pumpkins, sunflowers/power, cactus, mazes/gold, simulation, multi-drone, `set_world_size`, and wizard hat.
-- Not yet visible in unlocks: dinosaurs/bones and leaderboards.
-- Resource state at read time: very high hay/wood, several million carrots/pumpkins, large weird substance/water stock, low hundreds of gold, about 1k power.
+- Original research snapshot had `expand_9`, polyculture, pumpkins, sunflowers/power, cactus, mazes/gold, simulation, multi-drone, `set_world_size`, and wizard hat.
+- As of 2026-07-08, dinosaurs/bones are unlocked and active in the dispatcher.
+- As of 2026-07-08, the save has billion-scale hay/carrot/pumpkin/cactus/weird substance, multi-billion wood, about 100M gold, hundreds of thousands of power, and hundreds of thousands of bones.
+- Leaderboards are still not visible in the current unlock list.
 
 Interpretation:
 
-- This is late-midgame, not endgame.
-- The next strategic bridge is maxing expansion/drone/speed/crop tiers, improving gold and power generation, then adding cactus and dinosaur/bone systems.
+- This is now late progression, with active specialist systems for power, cactus, maze gold, and bones.
+- The next strategic bridge is improving reliability/throughput, adding stronger maze pathfinding/reuse, and eventually preparing leaderboard/simulation harnesses.
 - The code should be written using `get_world_size()` and `max_drones()` rather than fixed 9x9 assumptions.
 
 ## How The Game Works At High Level
@@ -124,7 +124,7 @@ Top pattern:
 Reason this matters:
 
 - Power affects throughput and unlocks.
-- Current code only plants sunflowers when power is low; it does not intentionally choose max-petal harvests.
+- Current code intentionally measures petals and harvests in descending max-petal order. See [sunflower strategy](strategy/sunflower).
 
 ### 4. Pumpkins / Mega Pumpkin
 
@@ -231,9 +231,9 @@ Top-tier improvements:
 
 Current save implication:
 
-- Dinosaur is not yet unlocked in `save.json`.
-- Do not write dinosaur into the main dispatcher as active work yet.
-- Prepare the interface, but gate it behind `num_unlocked(Unlocks.Dinosaurs)`.
+- Dinosaur is unlocked and `dinosaur.py` is active in the dispatcher.
+- The current implementation is a simple apple-chasing baseline using `movement.snake_to()`.
+- A Hamiltonian/safe-cycle dinosaur route remains future work.
 
 ### 8. Multi-Drone / Megafarm
 
@@ -258,59 +258,43 @@ Common failure:
 
 This save should progress in this order:
 
-1. Raise power with a real sunflower max-petal loop.
-2. Raise gold reserve using the current maze loop, then improve it.
-3. Continue auto-unlocking speed, expansion, drone count, cactus tiers, and maze tiers when reserves allow.
-4. Add cactus sorting once cactus reserve/unlock costs become a bottleneck.
-5. Refactor code to never assume 9x9.
-6. Use `set_world_size()` only for testing, not as the definition of endgame.
-7. Add dinosaur/bone module only after `Unlocks.Dinosaurs` appears.
+1. Keep power stable with the current max-petal sunflower loop.
+2. Keep base resources stable with staggered polyculture workers.
+3. Keep pumpkin, cactus, bone, and gold targets filled through specialist modules.
+4. Improve maze safety by guarding multi-drone maze creation with weird-substance checks.
+5. Benchmark polyculture waiting behavior and specialist throughput.
+6. Add measured maze pathfinding/reuse after the current wall follower remains stable.
+7. Add a safer dinosaur route before treating bones as leaderboard-ready.
 8. Add leaderboard/simulation harness only after the main automation is stable.
 
 ## Architecture Recommendations
 
-Recommended modules:
+Current modules:
 
-- `main.py`: dispatcher only.
-- `farming.py`: shared resource thresholds, till/water/harvest/trade helpers.
+- `main.py`: dispatcher only; see [dispatcher strategy](strategy/dispatcher).
+- `farming.py`: shared till/water/harvest/replace helpers.
 - `movement.py`: wrapping movement, lane movement, block movement.
-- `poly.py`: base resource recovery.
-- `sunflower.py`: max-petal power farming.
-- `pumpkin.py`: mega-pumpkin farm with repair loop.
-- `cactus.py`: cactus plant/sort/harvest.
-- `maze.py`: simple solver now, later multi-drone/pathfinding/reuse.
-- `dinosaur.py`: gated bone farming.
-- `unlocking.py`: safe unlock checks based on `get_cost()`.
-- `benchmark.py`: `simulate()` and `get_tick_count()` helpers.
+- `targets.py`: low/high item targets.
+- `drones.py`: shared spawned-drone task helper.
+- `poly_drones.py` and `poly_basic.py`: base resource recovery; see [polyculture strategy](strategy/polyculture).
+- `sunflower.py`: max-petal power farming; see [sunflower strategy](strategy/sunflower).
+- `pumpkin.py`: mega-pumpkin farm with repair loop; see [pumpkin strategy](strategy/pumpkin).
+- `cactus.py`: cactus plant/sort/harvest; see [cactus strategy](strategy/cactus).
+- `maze_basic.py` and `maze_drones.py`: wall-following solver and partitioned maze workers; see [maze strategy](strategy/maze).
+- `dinosaur.py`: active bone farming baseline; see [dinosaur strategy](strategy/dinosaur).
+- `benchmark.py`: future `simulate()` and `get_tick_count()` helpers.
+- `unlocking.py`: future safe unlock checks based on `get_cost()` if automatic unlocking becomes a goal.
 
-Dispatcher should choose based on goals, not current method state:
+The live dispatcher chooses based on low/high item targets in `targets.py`. See [dispatcher strategy](strategy/dispatcher) for the exact current order.
 
-```python
-while True:
-    if need_power():
-        sunflower.run()
-    elif need_gold():
-        maze.run()
-    elif need_base_materials():
-        poly.run()
-    elif need_unlock_resource():
-        run_bottleneck_loop()
-    elif can_safely_unlock():
-        unlock_next()
-    elif cactus_ready_goal():
-        cactus.run()
-    elif dinosaur_ready_goal():
-        dinosaur.run()
-    else:
-        benchmark_or_farm_next_goal()
-```
+Future dispatcher changes should keep specialist modules focused on farming, not global unlock decisions.
 
 ## Research Conclusions
 
 - Endgame is best modeled as 32x32 and 32-drone-capable, not 9x9.
-- The current save is on the path but still needs max expansion/drone/speed and dinosaur/leaderboard unlocks.
-- The highest-impact immediate code upgrade is a real dispatcher plus sunflower max-petal farming.
-- The highest-impact next specialist loop is cactus sorting.
+- The current save is on the path but still needs leaderboard unlocks and stronger endgame benchmarking.
+- The dispatcher, target hysteresis, sunflower max-petal farming, cactus sorting, and dinosaur baseline now exist.
+- The highest-impact immediate code upgrade is making multi-drone maze creation use the same weird-substance guard as `maze_basic`.
 - Maze should evolve from simple wall-following to measured/pathfinding/reuse and possibly multi-drone or partitioned maze farming.
 - Dinosaur should be implemented as a safe Hamiltonian-cycle baseline first, then optimized with apple-aware shortcuts.
 - Top-tier play is algorithm selection plus tick/movement minimization, not just planting bigger fields.

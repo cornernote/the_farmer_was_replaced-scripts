@@ -7,8 +7,8 @@ import cactus
 import dinosaur
 
 JOBS = [
-	{'name': 'poly_drones', 'farm': poly_drones.farm, 'items': [Items.Hay, Items.Wood, Items.Carrot]},
 	{'name': 'sunflower', 'farm': sunflower.farm, 'items': [Items.Power]},
+	{'name': 'poly_drones', 'farm': poly_drones.farm, 'items': [Items.Hay, Items.Wood, Items.Carrot]},
 	{'name': 'pumpkin', 'farm': pumpkin.farm, 'items': [Items.Pumpkin]},
 	{'name': 'cactus', 'farm': cactus.farm, 'items': [Items.Cactus]},
 	{'name': 'dinosaur', 'farm': dinosaur.farm, 'items': [Items.Bone]},

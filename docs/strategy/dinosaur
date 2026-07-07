@@ -1,0 +1,43 @@
+---
+title: Dinosaur Strategy Notes
+type: strategy
+status: active
+updated: 2026-07-08
+---
+
+# Dinosaur Strategy Notes
+
+Related docs: [current strategies](README.md), [dispatcher](dispatcher), [research](../research.md)
+
+## Module
+
+- `dinosaur.py`
+
+## Current Flow
+
+Dinosaurs are unlocked in the current save. The active baseline:
+
+1. Clear the field.
+2. Switch to `Hats.Dinosaur_Hat`.
+3. Use `measure()` to locate the next apple.
+4. Try to move toward it with `movement.snake_to()`.
+5. If direct movement is blocked, try cardinal fallback moves.
+6. Return to `Hats.Gold_Hat` after the run.
+
+## Current Role
+
+This is a simple bone progression loop. It is acceptable for filling the current bone target, but it is not a safe endgame dinosaur route.
+
+## Future Direction
+
+The safer endgame baseline is Hamiltonian-style routing:
+
+- follow a cycle that can visit the whole field
+- avoid trapping the head behind the tail
+- add apple-aware shortcuts only when the route can safely rejoin the cycle
+
+## Remaining Work
+
+- Design a safe cycle before leaderboard-style bone farming.
+- Benchmark field size versus bones per tick.
+- Avoid clever shortcuts until the baseline cannot self-collide.

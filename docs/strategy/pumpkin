@@ -1,0 +1,37 @@
+---
+title: Pumpkin Strategy Notes
+type: strategy
+status: active
+updated: 2026-07-08
+---
+
+# Pumpkin Strategy Notes
+
+Related docs: [current strategies](README.md), [dispatcher](dispatcher)
+
+## Module
+
+- `pumpkin.py`
+
+## Current Flow
+
+`pumpkin.py` is a row-worker repair loop.
+
+1. Clear the field.
+2. Spawn one worker per row.
+3. Each row worker loops while pumpkins are below the high target.
+4. `plant_row(y)` repairs/replants until every tile in that row is mature pumpkin.
+5. After a row pass, the worker checks the row's first tile against its western neighbor with `measure()`.
+6. If the row appears synchronized, the worker harvests.
+
+## Current Role
+
+This is a practical stock-filling loop. It is not yet a final coordinator-driven mega-pumpkin strategy.
+
+The current code allows row workers to harvest. A future optimized version may move harvest ownership to a coordinator if row-level harvest timing misses larger mega-pumpkin opportunities.
+
+## Remaining Work
+
+- Decide whether rows or a coordinator should own final harvest.
+- Benchmark row-worker harvest timing against a full-field coordinator harvest.
+- Consider column ownership if it makes synchronization easier at larger world sizes.

@@ -3,13 +3,15 @@ import targets
 def farm():
 	clear()
 	while targets.want(Items.Gold):
-		plant_maze()
-		solve_maze()
+		if plant_maze(get_world_size()):
+			solve_maze()
 
-def plant_maze(size = get_world_size()):
+def maze_cost(size):
+	return size * 2**(num_unlocked(Unlocks.Mazes) - 1)
+
+def plant_maze(size):
 	plant(Entities.Bush)
-	n_substance = size * 2**(num_unlocked(Unlocks.Mazes) - 1)
-	use_item(Items.Weird_Substance, n_substance)
+	return use_item(Items.Weird_Substance, maze_cost(size))
 
 def solve_maze():
 	directions = [North, East, South, West]
