@@ -7,7 +7,7 @@ def farm():
 	tasks = []
 	for center in get_poly_positions():
 		tasks.append({'method': drone_farm, 'param': center})
-	drones.process_tasks(tasks)
+	drones.process_tasks(tasks, True)
 
 def drone_farm(pos):
 	world = poly_basic.get_world(get_world_size(), Entities.Grass)

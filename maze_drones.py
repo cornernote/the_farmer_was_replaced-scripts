@@ -1,15 +1,19 @@
 import maze_basic
 import movement
 import targets
+import drones
 
 def farm():
 	clear()
 	size, centers = get_maze_positions()
-	for center in centers:
-		if not spawn_drone(drone_farm, size, center):
-			drone_farm(size, center)
 
-def drone_farm(size, pos = [0, 0]):
+	tasks = []
+	for center in centers:
+		tasks.append({'method': drone_farm, 'param': {'size': size, 'pos': center}})
+	drones.process_tasks(tasks, True)
+
+def drone_farm(param):
+	size, pos = param['size'], param['pos']
 	if not size:
 		size = get_world_size()
 	started = False

@@ -11,9 +11,9 @@ ITEMLIST = {
 	'Bone': Items.Bone,
 	'Weird_Substance': Items.Weird_Substance,
 	'Gold': Items.Gold,
-	# 'Water': Items.Water,
-	# 'Fertilizer': Items.Fertilizer,
-	# 'Power': Items.Power,
+	'Water': Items.Water,
+	'Fertilizer': Items.Fertilizer,
+	'Power': Items.Power,
 }
 
 def get_items():

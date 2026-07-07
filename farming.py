@@ -8,6 +8,10 @@ def replace_with(entity):
 	else:
 		ensure_water()
 
+def ensure_harvest():
+	if can_harvest() or get_entity_type() == Entities.Dead_Pumpkin:
+		harvest()
+
 def ensure_till(entity):
 	if get_ground_type() != Grounds.Soil:
 		if (entity == Entities.Carrot or entity == Entities.Pumpkin or entity == Entities.Sunflower or entity == Entities.Cactus):
@@ -19,13 +23,4 @@ def ensure_till(entity):
 
 def ensure_water():
 	if get_ground_type() == Grounds.Soil and get_water() < 0.5 and num_items(Items.Water) > 0:
-		use_item(Items.Water)	
-
-def ensure_harvest():
-	if can_harvest() or get_entity_type() == Entities.Dead_Pumpkin:
-		harvest()
-
-def wait_for_harvest():
-	while not can_harvest():
-		pass
-	harvest()
+		use_item(Items.Water)

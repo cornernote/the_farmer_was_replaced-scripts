@@ -6,23 +6,21 @@ import pumpkin
 import cactus
 import dinosaur
 
-def get_jobs():
-	return [
-		{'name': 'poly_drones', 'farm': poly_drones.farm, 'items': [Items.Hay, Items.Wood, Items.Carrot]},
-		{'name': 'sunflower', 'farm': sunflower.farm, 'items': [Items.Power]},
-		{'name': 'pumpkin', 'farm': pumpkin.farm, 'items': [Items.Pumpkin]},
-		{'name': 'cactus', 'farm': cactus.farm, 'items': [Items.Cactus]},
-		{'name': 'dinosaur', 'farm': dinosaur.farm, 'items': [Items.Bone]},
-		{'name': 'maze_drones', 'farm': maze_drones.farm, 'items': [Items.Gold]},
-	]
+JOBS = [
+	{'name': 'poly_drones', 'farm': poly_drones.farm, 'items': [Items.Hay, Items.Wood, Items.Carrot]},
+	{'name': 'sunflower', 'farm': sunflower.farm, 'items': [Items.Power]},
+	{'name': 'pumpkin', 'farm': pumpkin.farm, 'items': [Items.Pumpkin]},
+	{'name': 'cactus', 'farm': cactus.farm, 'items': [Items.Cactus]},
+	{'name': 'dinosaur', 'farm': dinosaur.farm, 'items': [Items.Bone]},
+	{'name': 'maze_drones', 'farm': maze_drones.farm, 'items': [Items.Gold]},
+]
 
 def select_job():
-	jobs = get_jobs()
-	for job in jobs:
+	for job in JOBS:
 		for item in job['items']:
 			if targets.need(item):
 				return job
-	return jobs[0]
+	return JOBS[5]
 
 while True:
 	job = select_job()

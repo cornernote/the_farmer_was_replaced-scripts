@@ -27,7 +27,9 @@ def farm_poly(pos, world):
 			movement.move_to(companion[1])
 			farming.replace_with(companion[0])
 			movement.move_to(pos)
-		farming.wait_for_harvest()
+		while not can_harvest():
+			pass
+		harvest()
 
 def get_world(size, element):
 	grid = []
@@ -49,7 +51,6 @@ def get_entity_old():
 	if num_items(Items.Wood) < num_items(Items.Carrot):
 		return Entities.Tree
 	return Entities.Carrot
-		
 
 if __name__ == '__main__':
 	farm()
