@@ -1,0 +1,61 @@
+---
+title: Sunflower Strategy Notes
+type: strategy
+status: draft
+updated: 2026-07-06
+---
+
+# Sunflower Strategy Notes
+
+Sunflowers are a power farm, but the important mechanic is not just planting and harvesting. The bonus depends on harvesting a sunflower that currently has the largest petal count on the farm.
+
+## Known Mechanics
+
+- Sunflowers have 7 to 15 petals.
+- `measure()` returns the petal count for the sunflower under the drone.
+- Sunflowers can be measured before they are fully grown.
+- Harvesting a grown sunflower gives power.
+- If there are at least 10 sunflowers on the farm and the harvested sunflower has the largest current petal count, the harvest gives 8x power.
+- If a lower-petal sunflower is harvested while a higher-petal sunflower still exists, the next sunflower harvest also gives normal power.
+- Multiple sunflowers can tie for the largest petal count. Any tied max-petal sunflower is valid.
+- Power doubles drone speed while available and is consumed by drone actions.
+
+## Current Code Shape
+
+`sunflower.py` now:
+
+- exits when `farming.need_power()` becomes false
+- plants the full field using row drones
+- waits for planting drones before scanning
+- scans rows with drones and records petal counts
+- harvests by descending petal count
+
+That shape is close to correct. The main strategic concern is preserving the 10-sunflower bonus condition.
+
+## Recommended Baseline Algorithm
+
+1. Fill the field with sunflowers.
+2. Measure every sunflower immediately after planting.
+3. Build petal buckets for counts 7 through 15.
+4. Harvest only flowers from the current highest non-empty bucket.
+5. After each max-petal bucket is harvested, the next lower bucket becomes the current maximum.
+6. Stop harvesting before fewer than 10 sunflowers would remain.
+7. Replant harvested tiles.
+8. Repeat until `farming.need_power()` is false.
+
+This keeps every harvest bonus-valid while there are enough flowers remaining.
+
+## Important Detail
+
+Do not blindly harvest the final 9 flowers in a cycle. Once fewer than 10 sunflowers remain on the farm, the 8x bonus cannot apply. It should be better to leave those flowers standing, replant harvested positions, and run another measured cycle.
+
+## Possible Improvement
+
+Because flowers can be measured before they are mature, scanning does not need to wait for `can_harvest()`. Waiting should happen only at harvest time, and only for the selected max-petal targets. This may reduce idle time during the scan phase.
+
+## Later Optimizations
+
+- Store positions by petal count instead of storing a full grid and converting it later.
+- Track harvested positions so replants can target only those tiles instead of clearing and rebuilding the whole field.
+- Benchmark power per tick with `get_tick_count()`.
+- Compare full-field cycles with lane-owned drone cycles at larger world sizes.
