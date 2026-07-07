@@ -12,6 +12,7 @@ Related docs: [current strategies](README.md), [dispatcher](dispatcher), [resear
 ## Module
 
 - `dinosaur.py`
+- `dino_hamiltonian.py`
 
 ## Current Flow
 
@@ -28,6 +29,8 @@ Dinosaurs are unlocked in the current save. The active baseline:
 
 This is a simple bone progression loop. It is acceptable for filling the current bone target, but it is not a safe endgame dinosaur route.
 
+`dino_hamiltonian.py` is an opt-in safer-cycle prototype. It is not wired into `main.py` yet.
+
 ## Future Direction
 
 The safer endgame baseline is Hamiltonian-style routing:
@@ -36,8 +39,89 @@ The safer endgame baseline is Hamiltonian-style routing:
 - avoid trapping the head behind the tail
 - add apple-aware shortcuts only when the route can safely rejoin the cycle
 
+## Researched Strategy Options
+
+### 1. Plain Serpentine / Hamiltonian Cycle
+
+This is the safest next implementation.
+
+Pattern:
+
+1. Start at an origin.
+2. Traverse the field in a snake-like path.
+3. Leave one row or lane open as a return path.
+4. Loop back to the origin.
+5. Continue until the field is full or the bone target is reached.
+
+Pros:
+
+- Very reliable.
+- Easy to reason about.
+- Does not need tail-state simulation.
+- Apples are eventually reached because the path covers the field.
+
+Cons:
+
+- Can be slow when the apple is nearby but later in the route.
+- Not leaderboard-level by itself.
+- Needs an even world size for the current row-serpentine cycle.
+
+### 2. Hamiltonian Cycle With Safe Shortcuts
+
+This is the best target after the plain cycle works.
+
+Pattern:
+
+1. Keep a fixed Hamiltonian cycle order for every tile.
+2. Track the head and tail positions along that order.
+3. If an apple is reachable by a shortcut that stays ahead of the head and behind the tail safely, take it.
+4. Otherwise continue along the normal cycle.
+
+Pros:
+
+- Still safe if the "between head and tail" check is correct.
+- Much faster than blindly following the full route.
+- Matches public high-quality dinosaur examples.
+
+Cons:
+
+- Requires tracking the tail.
+- Needs a queue or ring buffer of occupied positions.
+- Bugs in the safe-shortcut check can self-collide.
+
+### 3. Edge / Wave Pattern
+
+Some community examples use an outer square or edge route, then make wave passes when apples are reachable from the current lane.
+
+Pros:
+
+- Often simpler than full shortcut logic.
+- Can be faster than pure serpentine.
+
+Cons:
+
+- Harder to prove safe than a strict Hamiltonian cycle.
+- Depends on careful timing when the tail gets long.
+
+## Recommended Implementation Plan
+
+1. Keep the current apple-chasing baseline for progression.
+2. Test `dino_hamiltonian.py` manually on an even world size.
+3. Keep the fixed cycle stable before wiring it into `main.py`.
+4. Add a small position queue for the tail.
+5. Add horizontal/apple shortcuts only after the fixed cycle cannot collide.
+6. Benchmark bones per tick against the current `movement.snake_to()` approach.
+
 ## Remaining Work
 
-- Design a safe cycle before leaderboard-style bone farming.
+- Test `dino_hamiltonian.py` before making it the dispatcher default.
+- Add tail tracking before any shortcut logic.
 - Benchmark field size versus bones per tick.
 - Avoid clever shortcuts until the baseline cannot self-collide.
+
+## Sources
+
+- [The Farmer Was Replaced Dinosaurs wiki](https://thefarmerwasreplaced.wiki.gg/wiki/Dinosaurs)
+- [Solving Maze and Dinosaur in The Farmer Was Replaced](https://medium.com/%40hanxuyang0826/solving-maze-and-dinosaur-in-the-farmer-was-replaced-17ce201f19cc)
+- [MartinOpat dinosaur solution](https://github.com/MartinOpat/The-Farmer-Was-Replaced-Dinosaur-Solution)
+- [Useful scripts dinosaur algorithm guide](https://steamcommunity.com/sharedfiles/filedetails/?id=3585506194)
