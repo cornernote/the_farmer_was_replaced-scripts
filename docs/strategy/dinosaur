@@ -28,11 +28,13 @@ Dinosaurs are unlocked in the current save. The active dispatcher route:
 
 ## Current Role
 
-`dino_fractal.py` is the active bone progression loop. It is a fixed-cycle 32x32-friendly route, but it does not yet use apple-aware shortcuts.
+`dino_fractal.py` is the active bone progression loop. It is a fixed-cycle 32x32-friendly route with conservative apple-aware shortcuts.
 
 `dino_hamiltonian.py` is an opt-in safer-cycle prototype. It is not wired into `main.py` yet.
 
-`dino_fractal.py` follows a precomputed Moore space-filling cycle. On 32x32 it starts at `(0, 15)`, ends at `(0, 16)`, and returns to the start with a normal in-bounds south move. The direction tape is stored statically to avoid expensive in-game L-system/list generation.
+`dino_fractal.py` follows a precomputed Moore space-filling cycle. On 32x32 it starts at `(0, 15)`, ends at `(0, 16)`, and returns to the start with a normal in-bounds south move. The direction tape and cycle index map are stored statically to avoid expensive in-game L-system/list generation.
+
+Shortcut code exists behind `ENABLE_SHORTCUTS` and is currently enabled. The shortcut rule tracks an internal body queue, estimates the tail's Moore-cycle index, and only takes a shortcut step when the target tile is inside the safe head-to-tail window and does not pass the apple's cycle index. While the body is short, it greedily tries the largest Manhattan axis toward the apple, then the other axis. Mid/late-run shortcuts stay same-row/same-column. Shortcut aggressiveness scales with body length: 4 early, 8 mid-run, and 16 late.
 
 ## Future Direction
 
@@ -116,7 +118,8 @@ Pattern:
 2. Start at `(0, 15)` on 32x32.
 3. Follow the order exactly without crossing the farm bounds.
 4. Return from `(0, 16)` to `(0, 15)` with a normal in-bounds move.
-5. Re-measure when an apple is eaten, but do not shortcut in the baseline.
+5. Re-measure when an apple is eaten.
+6. Take greedy early shortcuts and same-row/same-column later shortcuts only inside the safe tail window.
 
 Pros:
 
@@ -129,7 +132,7 @@ Cons:
 
 - The baseline still waits for the apple to appear later on the fixed path.
 - Non-power-of-two world sizes need a different fallback.
-- Shortcut logic still needs tail-gap tracking before it is safe.
+- Shortcut logic now has tail-window tracking, but broader pathfinding shortcuts still need more testing.
 
 ## Recommended Implementation Plan
 
@@ -137,15 +140,15 @@ Cons:
 2. Test `dino_hamiltonian.py` manually on an even world size.
 3. Test `dino_fractal.py` manually on 32x32.
 4. Keep the fixed cycle stable in `main.py`.
-5. Add a small position queue for the tail.
-6. Add horizontal/apple shortcuts only after the fixed cycle cannot collide.
+5. Test the current tail-window shortcut rule in-game.
+6. Tighten or disable shortcuts if they create local loops.
 7. Benchmark bones per tick against the current `movement.snake_to()` approach.
 
 ## Remaining Work
 
 - Test `dino_hamiltonian.py` before making it the dispatcher default.
-- Watch `dino_fractal.py` in the dispatcher before adding shortcuts.
-- Add tail tracking before any shortcut logic.
+- Watch `dino_fractal.py` in the dispatcher with shortcuts enabled.
+- Improve tail tracking if the internal queue diverges from the game's body behavior.
 - Benchmark field size versus bones per tick.
 - Avoid clever shortcuts until the baseline cannot self-collide.
 

@@ -21,7 +21,7 @@ def plant_farm():
 	drones.process_tasks(tasks)
 
 def plant_row_forever(y):
-	while targets.want(Items.Pumpkin):
+	while continue_condition():
 		plant_row(y)
 		movement.move_to([0, y])
 		if get_entity_type() == Entities.Pumpkin and measure() == measure(West):

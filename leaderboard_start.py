@@ -1,0 +1,1 @@
+leaderboard_run(Leaderboards.Cactus, 'leaderboard_test', 1000)
