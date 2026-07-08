@@ -2,9 +2,14 @@ import targets
 
 def farm():
 	clear()
-	while targets.want(Items.Gold):
+	while continue_condition():
 		if plant_maze(get_world_size()):
 			solve_maze()
+
+def continue_condition():
+	if __name__ == '__main__':
+		return True
+	return targets.want(Items.Gold)
 
 def maze_cost(size):
 	return size * 2**(num_unlocked(Unlocks.Mazes) - 1)

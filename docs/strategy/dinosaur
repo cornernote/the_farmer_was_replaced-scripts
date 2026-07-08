@@ -11,25 +11,28 @@ Related docs: [current strategies](README.md), [dispatcher](dispatcher), [resear
 
 ## Module
 
-- `dinosaur.py`
+- `dino.py`
 - `dino_hamiltonian.py`
+- `dino_fractal.py`
 
 ## Current Flow
 
-Dinosaurs are unlocked in the current save. The active baseline:
+Dinosaurs are unlocked in the current save. The active dispatcher route:
 
 1. Clear the field.
-2. Switch to `Hats.Dinosaur_Hat`.
-3. Use `measure()` to locate the next apple.
-4. Try to move toward it with `movement.snake_to()`.
-5. If direct movement is blocked, try cardinal fallback moves.
+2. Move to the Moore path start before switching hats.
+3. Switch to `Hats.Dinosaur_Hat`.
+4. Build and follow the Moore fractal cycle.
+5. Use `measure()` to refresh the apple position whenever an apple is eaten.
 6. Return to `Hats.Gold_Hat` after the run.
 
 ## Current Role
 
-This is a simple bone progression loop. It is acceptable for filling the current bone target, but it is not a safe endgame dinosaur route.
+`dino_fractal.py` is the active bone progression loop. It is a fixed-cycle 32x32-friendly route, but it does not yet use apple-aware shortcuts.
 
 `dino_hamiltonian.py` is an opt-in safer-cycle prototype. It is not wired into `main.py` yet.
+
+`dino_fractal.py` follows a precomputed Moore space-filling cycle. On 32x32 it starts at `(0, 15)`, ends at `(0, 16)`, and returns to the start with a normal in-bounds south move. The direction tape is stored statically to avoid expensive in-game L-system/list generation.
 
 ## Future Direction
 
@@ -103,18 +106,45 @@ Cons:
 - Harder to prove safe than a strict Hamiltonian cycle.
 - Depends on careful timing when the tail gets long.
 
+### 4. Fractal / Moore Cycle
+
+This is the aesthetic alternative to plain serpentine routing on a 32x32 farm.
+
+Pattern:
+
+1. Build a Moore-style order for every tile.
+2. Start at `(0, 15)` on 32x32.
+3. Follow the order exactly without crossing the farm bounds.
+4. Return from `(0, 16)` to `(0, 15)` with a normal in-bounds move.
+5. Re-measure when an apple is eaten, but do not shortcut in the baseline.
+
+Pros:
+
+- Full-grid Hamiltonian-style coverage with an in-bounds return edge.
+- Looks fractal instead of row-serpentine.
+- 32x32 is ideal because 32 is a power of two.
+- Gives stable path indices for future shortcut safety checks.
+
+Cons:
+
+- The baseline still waits for the apple to appear later on the fixed path.
+- Non-power-of-two world sizes need a different fallback.
+- Shortcut logic still needs tail-gap tracking before it is safe.
+
 ## Recommended Implementation Plan
 
 1. Keep the current apple-chasing baseline for progression.
 2. Test `dino_hamiltonian.py` manually on an even world size.
-3. Keep the fixed cycle stable before wiring it into `main.py`.
-4. Add a small position queue for the tail.
-5. Add horizontal/apple shortcuts only after the fixed cycle cannot collide.
-6. Benchmark bones per tick against the current `movement.snake_to()` approach.
+3. Test `dino_fractal.py` manually on 32x32.
+4. Keep the fixed cycle stable in `main.py`.
+5. Add a small position queue for the tail.
+6. Add horizontal/apple shortcuts only after the fixed cycle cannot collide.
+7. Benchmark bones per tick against the current `movement.snake_to()` approach.
 
 ## Remaining Work
 
 - Test `dino_hamiltonian.py` before making it the dispatcher default.
+- Watch `dino_fractal.py` in the dispatcher before adding shortcuts.
 - Add tail tracking before any shortcut logic.
 - Benchmark field size versus bones per tick.
 - Avoid clever shortcuts until the baseline cannot self-collide.

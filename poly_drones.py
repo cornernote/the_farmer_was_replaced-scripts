@@ -11,7 +11,7 @@ def farm():
 
 def drone_farm(pos):
 	world = poly_basic.get_world(get_world_size(), Entities.Grass)
-	while targets.want(Items.Hay) or targets.want(Items.Wood) or targets.want(Items.Carrot):
+	while poly_basic.continue_condition():
 		poly_basic.farm_poly(pos, world)
 
 def get_poly_positions():

@@ -38,7 +38,7 @@ This folder is a save/code workspace for **The Farmer Was Replaced**. The code i
 - `pumpkin.py`: row-worker pumpkin loop.
 - `cactus.py`: cactus sort/harvest loop.
 - `maze_basic.py` and `maze_drones.py`: maze gold loops.
-- `dinosaur.py`: current bone loop.
+- `dino_fractal.py`: current Moore-cycle bone loop.
 - `dino_hamiltonian.py`: opt-in even-world Hamiltonian dinosaur prototype.
 
 ## Current Priorities

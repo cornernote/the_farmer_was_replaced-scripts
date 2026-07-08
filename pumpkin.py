@@ -5,9 +5,14 @@ import drones
 
 def farm():
 	clear()
-	while targets.want(Items.Pumpkin):
+	while continue_condition():
 		plant_farm()
 		harvest()
+
+def continue_condition():
+	if __name__ == '__main__':
+		return True
+	return targets.want(Items.Pumpkin)
 
 def plant_farm():
 	tasks = []

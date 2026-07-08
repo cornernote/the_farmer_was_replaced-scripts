@@ -12,12 +12,17 @@ def farm():
 		tasks.append({'method': drone_farm, 'param': {'size': size, 'pos': center}})
 	drones.process_tasks(tasks)
 
+def continue_condition():
+	if __name__ == '__main__':
+		return True
+	return targets.want(Items.Gold)
+
 def drone_farm(param):
 	size, pos = param['size'], param['pos']
 	if not size:
 		size = get_world_size()
 	started = False
-	while targets.want(Items.Gold):
+	while continue_condition():
 		movement.move_to(pos)
 		if not started:
 			started = True

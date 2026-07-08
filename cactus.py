@@ -5,10 +5,15 @@ import drones
 
 def farm():
 	clear()
-	while targets.want(Items.Cactus):
+	while continue_condition():
 		world = plant_farm()
 		sort_farm(world)
 		harvest_sorted()
+
+def continue_condition():
+	if __name__ == '__main__':
+		return True
+	return targets.want(Items.Cactus)
 
 def plant_farm():
 	tasks = []

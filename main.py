@@ -4,14 +4,14 @@ import poly_drones
 import sunflower
 import pumpkin
 import cactus
-import dinosaur
+import dino_fractal
 
 JOBS = [
 	{'name': 'sunflower', 'farm': sunflower.farm, 'items': [Items.Power]},
 	{'name': 'poly_drones', 'farm': poly_drones.farm, 'items': [Items.Hay, Items.Wood, Items.Carrot]},
 	{'name': 'pumpkin', 'farm': pumpkin.farm, 'items': [Items.Pumpkin]},
 	{'name': 'cactus', 'farm': cactus.farm, 'items': [Items.Cactus]},
-	{'name': 'dinosaur', 'farm': dinosaur.farm, 'items': [Items.Bone]},
+	{'name': 'dino_fractal', 'farm': dino_fractal.farm, 'items': [Items.Bone]},
 	{'name': 'maze_drones', 'farm': maze_drones.farm, 'items': [Items.Gold]},
 ]
 

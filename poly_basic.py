@@ -11,8 +11,13 @@ PLANTLIST = {
 def farm():
 	clear()
 	world = get_world(get_world_size(), Entities.Grass)
-	while targets.want(Items.Hay) or targets.want(Items.Wood) or targets.want(Items.Carrot):
+	while continue_condition():
 		farm_poly([3, 3], world)
+
+def continue_condition():
+	if __name__ == '__main__':
+		return True
+	return targets.want(Items.Hay) or targets.want(Items.Wood) or targets.want(Items.Carrot)
 
 def farm_poly(pos, world):
 	entity = get_entity()

@@ -5,9 +5,14 @@ import drones
 
 def farm():
 	clear()
-	while targets.want(Items.Power):
+	while continue_condition():
 		world = plant_farm()
 		harvest_farm(world)
+
+def continue_condition():
+	if __name__ == '__main__':
+		return True
+	return targets.want(Items.Power)
 
 def plant_farm():
 	tasks = []
